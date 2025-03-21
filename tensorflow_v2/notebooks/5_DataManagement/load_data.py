@@ -25,7 +25,8 @@ import requests
 import string
 import tarfile
 import tensorflow as tf
-
+import timeit
+from scripts.utils import write_csv
 # %%
 """
 ### Load Numpy Arrays
@@ -181,7 +182,12 @@ def parse_records(line):
     image = load_image(image_path)
     return image, image_label
 # Use 'map' to apply the above functions in parallel.
-data = data.map(lambda x: tf.py_function(func=parse_records,inp=[x],Tout=(tf.int32,tf.int32)), num_parallel_calls=4)
+start_time = timeit.default_timer()
+skipped_time = 0
+data = data.map(lambda x: tf.py_function(func=parse_records,inp=[x],Tout=(tf.float32,tf.int32)))
+time = start_time - skipped_time - timeit.default_timer()
+print("map time",time)
+write_csv(__file__,None,None,time = time)
 
 # Batch data (aggregate images-array together).
 data = data.batch(batch_size=2)
