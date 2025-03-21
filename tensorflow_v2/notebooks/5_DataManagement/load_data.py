@@ -181,7 +181,7 @@ def parse_records(line):
     image = load_image(image_path)
     return image, image_label
 # Use 'map' to apply the above functions in parallel.
-data = data.map(lamda x: tf.py_function(func=parse_records,inp=[x],Tout=(tf.string,tf.string)), num_parallel_calls=4)
+data = data.map(lambda x: tf.py_function(func=parse_records,inp=[x],Tout=(tf.string,tf.string)), num_parallel_calls=4)
 
 # Batch data (aggregate images-array together).
 data = data.batch(batch_size=2)
