@@ -15,7 +15,8 @@ TensorFlow 1.x example to TensorFlow 2.x. Key changes include:
 
 import tensorflow as tf
 import numpy as np
-
+from scripts.utils import write_csv
+import timeit
 # ------------------------------------------------------------------------------
 # 1. Load and preprocess MNIST
 # ------------------------------------------------------------------------------
@@ -34,9 +35,9 @@ y_test  = tf.one_hot(y_test, depth=10)
 # 2. Set hyperparameters
 # ------------------------------------------------------------------------------
 learning_rate    = 0.01
-training_epochs  = 25
-batch_size       = 100
-display_step     = 1
+training_epochs  = 10000
+batch_size       = 256
+display_step     = 50
 
 # ------------------------------------------------------------------------------
 # 3. Define model parameters W and b (tf.Variable is initialized immediately)
@@ -76,12 +77,14 @@ optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate)
 # 6. Build the tf.data.Dataset pipeline for training
 # ------------------------------------------------------------------------------
 train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train)) \
-                              .shuffle(buffer_size=60000) \
-                              .batch(batch_size)
+                              .shuffle(buffer_size=5000) \
+                              .batch(batch_size).prefetch(1)
 
 # ------------------------------------------------------------------------------
 # 7. Training loop
 # ------------------------------------------------------------------------------
+start_time = timeit.default_timer()
+skipped_time = 0
 for epoch in range(training_epochs):
     avg_cost = 0.0
     total_batch = int(x_train.shape[0] / batch_size)
@@ -118,6 +121,7 @@ correct = tf.equal(tf.argmax(predictions, axis=1), tf.argmax(y_test_subset, axis
 
 # 3) Cast booleans to float32 and take mean: this is the accuracy
 accuracy = tf.reduce_mean(tf.cast(correct, tf.float32))
-
+time  = start_time - skipped_time
 print("Accuracy:", accuracy.numpy())
+write_csv(__file__,training_epochs,accuracy,time)
 
